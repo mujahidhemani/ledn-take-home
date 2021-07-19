@@ -19,23 +19,23 @@ jobs:
       - run: 
           name: Build Docker Image
           command: | 
-          cd container
-          make build
+            cd container
+            make build
       - run: 
           name: Login to ECR
           command: |
-          pip install awscli
-          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 086189893235.dkr.ecr.us-east-1.amazonaws.com
+            pip install awscli
+            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 086189893235.dkr.ecr.us-east-1.amazonaws.com
       - run: 
           name: Tag image
           command: |
-          docker tag ledn:$CIRCLE_SHA1 086189893235.dkr.ecr.us-east-1.amazonaws.com/ledn:$GIT_HASH
-          docker tag ledn:latest 086189893235.dkr.ecr.us-east-1.amazonaws.com/ledn:latest
+            docker tag ledn:$CIRCLE_SHA1 086189893235.dkr.ecr.us-east-1.amazonaws.com/ledn:$GIT_HASH
+            docker tag ledn:latest 086189893235.dkr.ecr.us-east-1.amazonaws.com/ledn:latest
       - run:
           name: Push image
           command: |
-          docker push 086189893235.dkr.ecr.us-east-1.amazonaws.com/ledn:$GIT_HASH
-          docker push 086189893235.dkr.ecr.us-east-1.amazonaws.com/ledn:latest
+            docker push 086189893235.dkr.ecr.us-east-1.amazonaws.com/ledn:$GIT_HASH
+            docker push 086189893235.dkr.ecr.us-east-1.amazonaws.com/ledn:latest
   tf-validate:
     environment:
       TF_IN_AUTOMATION: 1
