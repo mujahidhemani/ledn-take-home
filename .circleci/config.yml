@@ -1,0 +1,147 @@
+# You're free to change the jobs and the workflow logic as needed.
+# Doc: https://circleci.com/docs/2.0/getting-started/#running-your-first-circleci-build
+version: 2.1
+jobs:
+  build:
+    environment:
+      GIT_HASH: $(echo $CIRCLE_SHA1 | cut -c -7)
+    docker:
+      - image: cimg/python:3.9.6
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: 
+          name: Build Docker Image
+          command: | 
+          cd container
+          make build
+      - run: 
+          name: Login to ECR
+          command: |
+          pip install awscli
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 086189893235.dkr.ecr.us-east-1.amazonaws.com
+      - run: 
+          name: Tag image
+          command: |
+          docker tag ledn:$CIRCLE_SHA1 086189893235.dkr.ecr.us-east-1.amazonaws.com/ledn:$GIT_HASH
+          docker tag ledn:latest 086189893235.dkr.ecr.us-east-1.amazonaws.com/ledn:latest
+      - run:
+          name: Push image
+          command: |
+          docker push 086189893235.dkr.ecr.us-east-1.amazonaws.com/ledn:$GIT_HASH
+          docker push 086189893235.dkr.ecr.us-east-1.amazonaws.com/ledn:latest
+  tf-validate:
+    environment:
+      TF_IN_AUTOMATION: 1
+      TF_WORKSPACE: circleci
+      TF_CLI_CONFIG_FILE: /root/repo/.terraformrc
+    docker:
+      - image: hashicorp/terraform:1.0.2
+    
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "infra/.terraform.lock.hcl" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - run: 
+          name: terraform rc
+          command: |
+            echo $TERRAFORMRC > /tmp/encoded
+            base64 -d /tmp/encoded > $TF_CLI_CONFIG_FILE
+      - run:
+          name: Terraform validate
+          command: |
+            cd infra
+            terraform init -input=false
+            terraform validate
+      - persist_to_workspace:
+          root: .
+          paths:
+            - infra/.terraform
+            - .terraformrc 
+  deploy-stage:
+    environment:
+      TF_IN_AUTOMATION: 1
+      TF_WORKSPACE: stage
+      TF_CLI_CONFIG_FILE: /root/repo/.terraformrc
+      TF_VAR_docker_tag: $(echo $CIRCLE_SHA1 | cut -c -7)
+    docker:
+      - image: hashicorp/terraform:1.0.2
+    working_directory: /root/repo
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/repo
+      - run: 
+          name: terraform rc
+          command: |
+            echo $TERRAFORMRC > /tmp/encoded
+            base64 -d /tmp/encoded > $TF_CLI_CONFIG_FILE
+      - run:
+          name: Terraform
+          command: |
+            cd ../terraform
+            terraform plan
+            terraform apply --auto-approve
+      - persist_to_workspace:
+          root: .
+          paths:
+            - terraform/.terraform
+            - .terraformrc
+  deploy-prod:
+    environment:
+      TF_IN_AUTOMATION: 1
+      TF_WORKSPACE: prod
+      TF_CLI_CONFIG_FILE: /root/repo/.terraformrc
+    working_directory: /root/repo
+    docker:
+      - image: hashicorp/terraform:1.0.2
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Terraform
+          command: |
+            cd ../terraform
+            terraform apply --auto-approve
+  cleanup:
+    docker:
+     - image: hashicorp/terraform:1.0.2
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "webserver/requirements.txt" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - attach_workspace:
+          at: ~/repo
+
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build
+      - tf-validate
+      - deploy-stage:
+          requires:
+            - build
+            - tf-validate
+      - deploy-prod:
+          requires:
+            - build
+            - tf-validate
+          filters:
+            branches:
+              only: master
