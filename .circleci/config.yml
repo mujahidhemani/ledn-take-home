@@ -26,7 +26,7 @@ jobs:
       - run: 
           name: Tag image
           command: |
-            docker tag ledn:$CIRCLE_SHA1 086189893235.dkr.ecr.us-east-1.amazonaws.com/ledn:$GIT_HASH
+            docker tag ledn:latest 086189893235.dkr.ecr.us-east-1.amazonaws.com/ledn:$GIT_HASH
             docker tag ledn:latest 086189893235.dkr.ecr.us-east-1.amazonaws.com/ledn:latest
       - run:
           name: Push image
@@ -36,7 +36,7 @@ jobs:
   tf-validate:
     environment:
       TF_IN_AUTOMATION: 1
-      TF_WORKSPACE: circleci
+      TF_WORKSPACE: stage
       TF_CLI_CONFIG_FILE: /root/repo/.terraformrc
     docker:
       - image: hashicorp/terraform:1.0.2
