@@ -12,10 +12,7 @@ jobs:
 
     steps:
       - checkout
-
-      # Download and cache dependencies
-      - setup_remote_docker:
-          docker_layer_caching: true
+      - setup_remote_docker
       - run: 
           name: Build Docker Image
           command: | 
@@ -55,8 +52,8 @@ jobs:
       - run: 
           name: terraform rc
           command: |
-            echo $TERRAFORMRC > /tmp/encoded
-            base64 -d /tmp/encoded > $TF_CLI_CONFIG_FILE
+            echo "credentials \"app.terraform.io\" {token =
+            \"$TERRAFORMRC\"}" > $TF_CLI_CONFIG_FILE
       - run:
           name: Terraform validate
           command: |
