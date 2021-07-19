@@ -1,5 +1,5 @@
 resource "aws_ecs_service" "webserver" {
-  name                 = "ledn-web-server"
+  name                 = "ledn-web-service"
   cluster              = module.ecs.ecs_cluster_arn
   task_definition      = aws_ecs_task_definition.ledn.arn
   desired_count        = 3
@@ -25,10 +25,13 @@ resource "aws_ecs_task_definition" "ledn" {
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   execution_role_arn       = aws_iam_role.ecs-role.arn
+  tags = {
+    Environment = "${terraform.workspace}"
+  }
   container_definitions = jsonencode([
     {
       name      = "ledn"
-      image     = "086189893235.dkr.ecr.us-east-1.amazonaws.com/ledn:latest"
+      image     = "086189893235.dkr.ecr.us-east-1.amazonaws.com/ledn:${var.docker_tag}"
       essential = true
       portMappings = [
         {
