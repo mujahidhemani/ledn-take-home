@@ -10,7 +10,6 @@ module "vpc" {
   #   enable_nat_gateway = true
   #   single_nat_gateway = true
   tags = {
-    Environment = "dev"
-    Owner       = "me"
+    Environment = "${terraform.workspace}"
   }
 }

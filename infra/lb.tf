@@ -4,6 +4,9 @@ resource "aws_lb" "lb" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.lb.id, aws_security_group.ecs-ledn.id]
   subnets            = module.vpc.public_subnets
+  tags = {
+    "Environment" = "${terraform.workspace}"
+  }
 }
 
 resource "aws_security_group" "lb" {
@@ -36,6 +39,10 @@ resource "aws_security_group" "lb" {
 
   lifecycle {
     create_before_destroy = true
+  }
+
+  tags = {
+    "Environment" = "${terraform.workspace}"
   }
 }
 
