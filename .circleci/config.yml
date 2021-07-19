@@ -12,8 +12,8 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
-        command: |
-          echo "export GIT_HASH=$CIRCLE_SHA1 >> $BASH_ENV"
+          command: |
+            echo "export GIT_HASH=$CIRCLE_SHA1 >> $BASH_ENV"
       - run: 
           name: Build Docker Image
           command: | 
@@ -79,8 +79,8 @@ jobs:
       - attach_workspace:
           at: ~/repo
       - run:
-        command: |
-          echo "export TF_VAR_docker_tag=$CIRCLE_SHA1 >> $BASH_ENV"
+          command: |
+            echo "export TF_VAR_docker_tag=$CIRCLE_SHA1 >> $BASH_ENV"
       - run:
           name: Terraform
           command: |
@@ -105,8 +105,8 @@ jobs:
       - attach_workspace:
           at: ~/repo
       - run:
-        command: |
-          echo "export TF_VAR_docker_tag=$CIRCLE_SHA1 >> $BASH_ENV"
+          command: |
+            echo "export TF_VAR_docker_tag=$CIRCLE_SHA1 >> $BASH_ENV"
       - run:
           name: Terraform
           command: |
