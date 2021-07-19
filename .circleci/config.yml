@@ -3,8 +3,6 @@
 version: 2.1
 jobs:
   build:
-    environment:
-      GIT_HASH: $(echo $CIRCLE_SHA1 | cut -c -7)
     docker:
       - image: cimg/python:3.9.6
 
@@ -13,6 +11,9 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+      - run:
+        command: |
+          echo "export GIT_HASH=$CIRCLE_SHA1 >> $BASH_ENV"
       - run: 
           name: Build Docker Image
           command: | 
@@ -70,7 +71,6 @@ jobs:
       TF_IN_AUTOMATION: 1
       TF_WORKSPACE: stage
       TF_CLI_CONFIG_FILE: /root/repo/.terraformrc
-      TF_VAR_docker_tag: $(echo $CIRCLE_SHA1 | cut -c -7)
     docker:
       - image: hashicorp/terraform:1.0.2
     working_directory: /root/repo
@@ -78,11 +78,9 @@ jobs:
       - checkout
       - attach_workspace:
           at: ~/repo
-      - run: 
-          name: terraform rc
-          command: |
-            echo $TERRAFORMRC > /tmp/encoded
-            base64 -d /tmp/encoded > $TF_CLI_CONFIG_FILE
+      - run:
+        command: |
+          echo "export TF_VAR_docker_tag=$CIRCLE_SHA1 >> $BASH_ENV"
       - run:
           name: Terraform
           command: |
@@ -106,6 +104,9 @@ jobs:
       - checkout
       - attach_workspace:
           at: ~/repo
+      - run:
+        command: |
+          echo "export TF_VAR_docker_tag=$CIRCLE_SHA1 >> $BASH_ENV"
       - run:
           name: Terraform
           command: |
