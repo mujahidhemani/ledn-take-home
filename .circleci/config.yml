@@ -140,6 +140,7 @@ workflows:
           requires:
             - build
             - tf-validate
+            - deploy-stage
           filters:
             branches:
               only: master
