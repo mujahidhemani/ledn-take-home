@@ -80,7 +80,7 @@ jobs:
           at: ~/repo
       - run:
           command: |
-            echo "export GIT_HASH=$CIRCLE_SHA1" >> $BASH_ENV
+            echo "export TF_VAR_docker_tag=$CIRCLE_SHA1" >> $BASH_ENV
       - run:
           name: Terraform
           command: |
@@ -106,7 +106,7 @@ jobs:
           at: ~/repo
       - run:
           command: |
-            echo "export GIT_HASH=$CIRCLE_SHA1" >> $BASH_ENV
+            echo "export TF_VAR_docker_tag=$CIRCLE_SHA1" >> $BASH_ENV
       - run:
           name: Terraform
           command: |
