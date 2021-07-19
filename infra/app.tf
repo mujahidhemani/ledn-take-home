@@ -38,7 +38,7 @@ resource "aws_ecs_task_definition" "ledn" {
           containerPort = 80
         },
         {
-          containerPort = 22
+          containerPort = 2222
         }
       ]
     }
@@ -57,8 +57,8 @@ resource "aws_security_group" "ecs-ledn" {
   }
 
   ingress {
-    from_port   = 22
-    to_port     = 22
+    from_port   = 2222
+    to_port     = 2222
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
