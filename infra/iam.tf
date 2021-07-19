@@ -1,10 +1,10 @@
 resource "aws_iam_role" "ecs-role" {
-  name               = "ecs-task-execution-role"
+  name               = "ledn-web-service-execution-role-${terraform.workspace}"
   assume_role_policy = data.aws_iam_policy_document.task_assume.json
 }
 
 resource "aws_iam_role_policy" "task_execution" {
-  name   = "ecs-task-execution"
+  name   = "ledn-execution-policy-${terraform.workspace}"
   role   = aws_iam_role.ecs-role.id
   policy = data.aws_iam_policy_document.task_execution_permissions.json
 }
